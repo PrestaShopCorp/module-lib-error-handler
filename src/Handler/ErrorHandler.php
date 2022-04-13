@@ -10,16 +10,15 @@ namespace PrestaShop\Sentry\Handler;
  */
 class ErrorHandler implements ErrorHandlerInterface
 {
-    public function __construct(Module $module, Env $env)
+    public function __construct(Module $module, string $dsn)
     {
         \Sentry\init(
             [
-                'dsn' => $env->get('SENTRY_CREDENTIALS'),
-//                'in_app_include' => [$module->name],
+                'dsn' => $dsn,
                 'project_root' => $module->getLocalPath(),
             ]
         );
-        \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($module, $env): void {
+        \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($module): void {
             $scope->setLevel(\Sentry\Severity::warning());
             $scope->setUser(
                 [
@@ -34,7 +33,6 @@ class ErrorHandler implements ErrorHandlerInterface
                     'prestashop_version' => _PS_VERSION_,
                     'ps_eventbus_is_enabled' => (int) Module::isEnabled($module->name),
                     'ps_eventbus_is_installed' => (int) Module::isInstalled($module->name),
-                    'env' => $env->get('SENTRY_ENVIRONMENT'),
                 ]
             );
         });
