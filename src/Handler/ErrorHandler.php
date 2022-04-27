@@ -3,7 +3,6 @@
 namespace PrestaShop\Sentry\Handler;
 
 use Configuration;
-use Exception;
 use Module;
 use Sentry\Severity;
 
@@ -35,21 +34,11 @@ abstract class ErrorHandler implements ErrorHandlerInterface
         });
     }
 
-    public function setModuleInfo(Module $module)
-    {
-        $this->setTags(
-            [
-                $module->name . '_version' => $module->version,
-                $module->name . '_is_enabled' => (int) Module::isEnabled($module->name),
-                $module->name . '_is_installed' => (int) Module::isInstalled($module->name),
-            ]
-        );
-    }
 
     /**
      * @param array<string, string> $tags The tags to merge into the current context
      */
-    public function setTags(array $tags)
+    public function setTags(array $tags): void
     {
         \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($tags): void {
             $scope->setTags(
@@ -61,7 +50,7 @@ abstract class ErrorHandler implements ErrorHandlerInterface
     /**
      * @param Severity|null $level The severity
      */
-    public function setLevel(Severity $level)
+    public function setLevel(Severity $level): void
     {
         \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($level): void {
             $scope->setLevel($level);
@@ -72,7 +61,7 @@ abstract class ErrorHandler implements ErrorHandlerInterface
      * @param array<string, mixed> $data The data
      * @param bool $merge If true, $data will be merged into user context instead of replacing it
      */
-    public function setUser(array $data, bool $merge = false)
+    public function setUser(array $data, bool $merge = false): void
     {
         \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($data, $merge): void {
             $scope->setUser(
@@ -82,16 +71,23 @@ abstract class ErrorHandler implements ErrorHandlerInterface
         });
     }
 
+    public function setModuleInfo(Module $module): void
+    {
+        $this->setTags(
+            [
+                $module->name . '_version' => $module->version,
+                $module->name . '_is_enabled' => (int) Module::isEnabled($module->name),
+                $module->name . '_is_installed' => (int) Module::isInstalled($module->name),
+            ]
+        );
+    }
+
     /**
-     * @param mixed $code
-     * @param bool|null $throw
-     * @param array|null $data
+     * @param \Throwable $exception The exception
      *
      * @return void
-     *
-     * @throws Exception
      */
-    public function handle($exception, $code = null, $throw = true, $data = null)
+    public function handle($exception): void
     {
         \Sentry\captureException($exception);
     }
