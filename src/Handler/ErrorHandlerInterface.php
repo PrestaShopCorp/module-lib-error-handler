@@ -4,6 +4,7 @@ namespace PrestaShop\Sentry\Handler;
 
 use Sentry\Severity;
 use Module;
+use Throwable;
 
 interface ErrorHandlerInterface
 {
@@ -11,5 +12,5 @@ interface ErrorHandlerInterface
     public function setLevel(Severity $level): void;
     public function setUser(array $data, bool $merge = false): void;
     public function setModuleInfo(Module $module): void;
-    public function handle($error): void;
+    public function handle(Throwable $error): void;
 }

@@ -6,6 +6,7 @@ use Configuration;
 use Module;
 use Sentry\Severity;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
+use Throwable;
 
 /**
  * Handle Error.
@@ -88,12 +89,7 @@ abstract class ErrorHandler implements ErrorHandlerInterface
         );
     }
 
-    /**
-     * @param \Throwable $exception The exception
-     *
-     * @return void
-     */
-    public function handle($exception): void
+    public function handle(Throwable $exception): void
     {
         \Sentry\captureException($exception);
     }
