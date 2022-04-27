@@ -10,34 +10,40 @@ use Sentry\Severity;
 /**
  * Handle Error.
  */
-class ErrorHandler implements ErrorHandlerInterface
+abstract class ErrorHandler implements ErrorHandlerInterface
 {
-    public function __construct(Module $module, string $dsn)
+    /**
+     * @param string $dsn // sentry DSN key
+     * @param string $localPath // local module path. You can find it in $module->getLocalPath()
+     */
+    public function __construct(string $dsn, string $localPath)
     {
         \Sentry\init(
             [
                 'dsn' => $dsn,
-                'project_root' => $module->getLocalPath(),
+                'project_root' => $localPath,
             ]
         );
-        \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($module): void {
+        \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
             $scope->setLevel(\Sentry\Severity::warning());
-            $scope->setUser(
-                [
-                    'name' => Configuration::get('PS_SHOP_EMAIL')
-                ],
-                true
-            );
             $scope->setTags(
                 [
-                    'module_version' => $module->version,
                     'php_version' => phpversion(),
                     'prestashop_version' => _PS_VERSION_,
-                    'module_is_enabled' => (int) Module::isEnabled($module->name),
-                    'module_is_installed' => (int) Module::isInstalled($module->name),
                 ]
             );
         });
+    }
+
+    public function setModuleInfo(Module $module)
+    {
+        $this->setTags(
+            [
+                $module->name . '_version' => $module->version,
+                $module->name . '_is_enabled' => (int) Module::isEnabled($module->name),
+                $module->name . '_is_installed' => (int) Module::isInstalled($module->name),
+            ]
+        );
     }
 
     /**
@@ -59,11 +65,11 @@ class ErrorHandler implements ErrorHandlerInterface
     {
         \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($level): void {
             $scope->setLevel($level);
-        }); 
+        });
     }
-    
+
     /**
-     * @param array<string, mixed> $data  The data
+     * @param array<string, mixed> $data The data
      * @param bool $merge If true, $data will be merged into user context instead of replacing it
      */
     public function setUser(array $data, bool $merge = false)
@@ -75,9 +81,8 @@ class ErrorHandler implements ErrorHandlerInterface
             );
         });
     }
-    
+
     /**
-     * @param Exception $error
      * @param mixed $code
      * @param bool|null $throw
      * @param array|null $data
