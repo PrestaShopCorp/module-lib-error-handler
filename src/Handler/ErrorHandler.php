@@ -5,6 +5,7 @@ namespace PrestaShop\Sentry\Handler;
 use Configuration;
 use Module;
 use Sentry\Severity;
+use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 
 /**
  * Handle Error.
@@ -17,12 +18,17 @@ abstract class ErrorHandler implements ErrorHandlerInterface
      */
     public function __construct(string $dsn, string $localPath)
     {
-        \Sentry\init(
-            [
-                'dsn' => $dsn,
-                'project_root' => $localPath,
-            ]
-        );
+        try {
+            \Sentry\init(
+                [
+                    'dsn' => $dsn,
+                    'project_root' => $localPath,
+                ]
+            );
+        } catch (InvalidOptionsException $e) {
+            return;
+        }
+
         \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
             $scope->setLevel(\Sentry\Severity::warning());
             $scope->setTags(
