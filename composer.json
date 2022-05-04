@@ -1,6 +1,7 @@
 {
   "name": "prestashop/module-lib-error-handler",
   "description": "Automatically send module exceptions to sentry",
+  "license": "AFL-3.0",
   "homepage": "https://github.com/PrestaShopCorp/module-lib-error-handler",
   "config": {
     "preferred-install": "dist",
